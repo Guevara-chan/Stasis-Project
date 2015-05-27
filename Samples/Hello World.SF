@@ -1,0 +1,4 @@
+( Just a little tribute for traditions...
+* Developed in 2009 by Guevara-chan )
+"Hello, world !" "Minimal.Debug.TypeString" invoke
+cr "<Press enter to exit>" type key

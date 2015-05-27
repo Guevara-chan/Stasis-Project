@@ -1,0 +1,14 @@
+\ -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+\ First actual program in StasisForth
+\ Developed in 2009 by Guevara-chan
+\ -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+99:b b->i times[ \ Main loop.
+I 99 < IF bl I . " bottle(s) on the wall." type cr
+cr 500 ms then
+bl I . " bottle(s) on the wall," type cr
+bl I . " bottle(s) of beer."     type cr
+" Take one down, pass it around,"   type cr
+]times
+" No more bottles on the wall :( !" type cr
+// Pausing before imminent exit.
+cr "<Press enter to exit>" type key

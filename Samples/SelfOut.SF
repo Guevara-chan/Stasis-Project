@@ -1,0 +1,11 @@
+/* Simple self-emitter */
+( Developed in 2009 by Guevara-chan )
+ResLabel: OwnText
+   <merge:me> "00"/merge:hex
+( ^ Infusing this file to .sVM ^)
+"Code of this program: " type cr \ Header output.
+"" 50 45:c LSet dup:s
+( ^ Delimiters preparation ^)
+type cr OwnText S@ type type
+( ^ Prinitng text from memory ^)
+cr "<press enter to exit>" type key

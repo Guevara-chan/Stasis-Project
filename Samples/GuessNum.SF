@@ -1,0 +1,24 @@
+"-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+Number guessing game v0.1
+Developed in 2009 by Guevara-chan
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"
+Type cr cr ( Header)
+// Initialization.
+Integer: Attempts
+99 Random 1+ -> Integer: Target
+\ Main loop.
+Begin Label: ReInput
+"[Attempt #" Attempts i->s S+ "] Guess my number (1-100): " S+ type
+ask s->i -> Integer: Opinion
+Opinion 1 < Opinion 100 > or [if
+"Incorrect number !" type cr ReInput
+else Opinion Target = if
+"Correct (you win) !" type cr break
+else Opinion Target > if
+"Smaller !" type cr
+else Opinion Target < if
+"Bigger !" type cr
+endif]
+1 += Attempts
+Again
+"<Press enter to exit>" type key

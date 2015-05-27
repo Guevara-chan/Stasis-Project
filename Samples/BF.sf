@@ -1,0 +1,82 @@
+/* Header */
+"-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+Classical BrainFuck interpreter v0.3
+Developed in 2009 by Guevara-chan
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+" type
+/* Constants */
+<[
+        30000 ->Integer: BufferSize
+BufferSize 1- ->Integer: BufferBound
+            0 ->Integer: Normal 
+            1 ->Integer: Skip
+           -1 ->Integer: Reverse 
+BufferSize    ->Bytes:   Buffer
+]>
+/* Variables */
+def[ Code:s Input:s OpCode:c       ]def
+def[ DP IP CodeEnd Level Mode Line ]def
+/* Main loop */
+"Input code or empty line to execute it:" type cr
+begin ClearArr: Buffer
+\ Input loop.
+begin Line . "> " type ask Trim -> Input
+"" input s= ?break 1+= Line
+\ Code refining.
+1 @Len: Input 1 FOR[
+I @Char: Input -> OpCode
+<fallthrough:on>
+{switch: opcode "+-<>.,[]" drop }do: OpCode +Char: Code
+;on{ "[":c }do: 1+= Level
+;on{ "]":c }do: 1-= Level
+;switch
+<fallthrough:off>
+]ROF
+again 0 -> Line        \ Zeroing line counter.
+Code "" = if cr pass then \ No execution without code.
+\ Integrity check
+Level If
+"ERROR: Unbalanced brackets ! Execution cancelled." type cr
+0 -> Level void-> Code
+pass then
+\ Init pointers
+@StrStart: Code -> IP
+@StrEnd:   Code -> CodeEnd
+\ Intepretation loop.
+begin
+IP @StrStart: Code < IF "WTF ???" type break THEN
+"Minimal.Debug.GetKey"/invoke #esc c= if \ Exit on ESC press.
+cr "<Execution terminated by user>" type \ Warning.
+Normal -> Mode 0 -> Level  break then    \ Some clean-up & Break
+\ Code analysis....
+IP C@ -> OpCode
+{switch: mode
+Normal }do: \ Normal mode.
+{switch: OpCode
+     "+":c }do: 1:b DP += Buffer
+;on{ "-":c }do: 1:b DP -= Buffer
+;on{ "<":c }do: DP ifz BufferBound -> DP else 1-= DP then
+;on{ ">":c }do: DP BufferBound = if 0 -> DP else 1+= DP then
+;on{ ".":c }do: DP Buffer emit
+;on{ ",":c }do: key DP -> Buffer
+;on{ "[":c }do: DP Buffer b->i ifz Skip -> mode   then
+;on{ "]":c }do: DP Buffer b->i if Reverse -> mode then
+;switch
+;on{ Skip }do: \ Skip mode.
+opcode "[":c C= [if 1+= Level else
+opcode "]":c C= if Level ifz Normal -> mode else 1-= Level then
+endif]
+;on{ reverse }do: \ Reverse skip mode.
+opcode "[":c C= [if Level ifz Normal -> mode else 1-= Level then else
+opcode "]":c C= if 1+= Level
+endif]
+;switch
+\ Shifting pointer.
+Mode Reverse = if 1-= IP else 1+= IP then
+\ ---------------
+IP CodeEnd > \ Exit if end of string encountered.
+until cr
+\ Clean-up
+0 -> DP void-> Code
+again

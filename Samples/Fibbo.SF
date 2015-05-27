@@ -1,0 +1,19 @@
+\ -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+\ Demonstrator of Fibbonaci sequence
+\ Developed in 2009 by Guevara-chan
+\ -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+: Fib ( n -- fibnum)
+-> Integer: n
+n 3 < IF 1 \ Return one
+ELSE n 2 - Fib N 1- Fib + \ Calculate recursively.
+THEN
+;
+
+"First 20 elements of Fibbonaci sequence:" type cr
+1 20 1 for[ \ Main loop.
+I Fib \ Calculation of next Fibonacci num.
+I i->s 2 #bl RSet ": " s+
+\ ^ Output preparations ^
+type . cr \ Output number.
+]rof "<press enter to exit>" type key \ Finalize.

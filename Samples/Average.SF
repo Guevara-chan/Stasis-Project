@@ -1,0 +1,39 @@
+\ Title typing.
+"/-\-/-\-/-\-/-\-/-\-/-\-/-\-/-\-/-\-/-\
+Average value calculation example.
+Developed in 2009 by Guevara-chan.
+\-/-\-/-\-/-\-/-\-/-\-/-\-/-\-/-\-/-\-/
+
+Press ESC to calculate average value:" type cr
+\ Main loop:
+begin
+"Input value #"type @cells: Floats: Array 1+ . ": " type
+MyAsk s->f
+0 ->> Array \ Adding 1 more element to array.
+again
+
+/* Custom input procedure */
+: MyAsk
+Char: Keycode
+String: Buffer
+"" -> Buffer \ Erase buffer.
+begin
+key -> KeyCode ( Parse key)
+KeyCode #cr  C= ?break ( Exit when 'Enter' pressed)
+keycode #esc C= if drop:s " <ok>" type calculation then ( Exit input)
+Keycode #bs  C= if ( If it was BackSpace...)
+@Len: Buffer if #bs emit bl #bs emit ( Deleting character on screen)
+Buffer dup ~chars 1- Left -> Buffer ( Cuting part of the string)
+then else Keycode emit ( Echo typing)
+Keycode +Char: Buffer ( Adding char to string buffer)
+then
+again cr ( Carriage return)
+Buffer ( Return retrieved string)
+return
+/* Average value calculation */
+label: calculation
+[foreach: Array [*] f->d += Double: Average next]
+Average if Average @cells: Array i->d D/ else 0:d then
+cr cr "Average value: " type d. cr
+"<press enter to exit>" type key bye
+;
