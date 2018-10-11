@@ -5,8 +5,10 @@ It was designed embeddable and easily extensible, though not really meant for sc
 
 # /Featuræ/:
 * 2bytecode-based extensible instruction set with most x86 operations (including FPU) covered.
+* Lightweight (~100Kb) interpeter with basic string and OS microlibraries included.
 * Forth-esque assembly language compiler with some ideas burrowed from [Rebol](http://www.rebol.com/).
 * Basic compile-time calculations support.
+* Forward subroutine referencing support.
 * Classical case-insensetive syntax.
 * Extensive namespace support.
 
