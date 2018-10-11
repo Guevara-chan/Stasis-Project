@@ -6,8 +6,8 @@ It was designed embeddable and easily extensible, though not really meant for sc
 # /Featuræ/:
 * 2bytecode-based extensible instruction set with most FPU commands translated as single operand.
 * Forth-esque assembly language compiler with some ideas burrowed from [Rebol](http://www.rebol.com/).
-* Namesapce support.
 * Classical case-insensetive syntax.
+* Extensive namesapce support.
 
 # /Brief samples of interfacing/:
 ![image](https://user-images.githubusercontent.com/8768470/46802627-88c88100-cd66-11e8-9a8d-96669f399293.png)
