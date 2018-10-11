@@ -9,11 +9,16 @@ It was designed embeddable and easily extensible, though not really meant for sc
 * Forth-esque assembly language compiler with some ideas burrowed from [Rebol](http://www.rebol.com/).
 * Common structured programming toolset (loops, if/else/then, switch) provided.
 * Extensive binary data embedding (including external files) directives.
-* Basic compile-time calculations support.
+* Minimalistic snapshot binary format with import/export tables support.
 * Direct memory management and IO access.
+* Basic compile-time calculations support.
 * Forward subroutine referencing support.
 * Classical case-insensetive syntax.
 * Extensive namespace support.
+
+# /Reassembling/:
+__Stasis__ was deveoped as OS-independent PureBasic v4.40 project, though compatible with 5.40 (LTS).  
+Compile `StasisVM.pb` or `StasisForth.pb` to assemble snapshot intepreter and compiler respectively.
 
 # /Brief samples of interfacing/:
 ![image](https://user-images.githubusercontent.com/8768470/46802627-88c88100-cd66-11e8-9a8d-96669f399293.png)
