@@ -9,6 +9,7 @@ It was designed embeddable and easily extensible, though not really meant for sc
 * Forth-esque assembly language compiler with some ideas burrowed from [Rebol](http://www.rebol.com/).
 * Common structured programming toolset (loops, if/else/then, switch) provided.
 * Basic compile-time calculations support.
+* Direct memory management and IO access.
 * Forward subroutine referencing support.
 * Classical case-insensetive syntax.
 * Extensive namespace support.
