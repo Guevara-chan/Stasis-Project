@@ -8,8 +8,8 @@ It was designed embeddable and easily extensible, though not really meant for sc
 * Lightweight (~100Kb) interpeter with basic string and OS microlibraries included.
 * Forth-esque assembly language compiler with some ideas burrowed from [Rebol](http://www.rebol.com/).
 * Common structured programming toolset (loops, if/else/then, switch) provided.
-* Extensive binary data embedding (including external files) directives.
 * Minimalistic snapshot binary format with import/export tables support.
+* Extensive binary data embedding (including external files) directives.
 * Direct memory management and IO access.
 * Basic compile-time calculations support.
 * Forward subroutine referencing support.
