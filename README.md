@@ -4,7 +4,7 @@ It was designed embeddable and easily extensible, though not really meant for sc
 ❗ There are no documentation provided yet, so some reverse-engineering skills is crucial ❗ 
 
 # /Featuræ/:
-* 2bytecode-based extensibly instruction set with most FPU commands translated as single operand.
+* 2bytecode-based extensible instruction set with most FPU commands translated as single operand.
 * Forth-esque assembly language compiler with some syntax ideas from [Rebol](http://www.rebol.com/).
 * Namesapce support.
 * Classical case-insensetive syntax.
