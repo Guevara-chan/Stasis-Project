@@ -19,7 +19,7 @@ EnableExplicit
 IncludeFile "StackLib.pb"
 IncludeFile "StasisBase.pb"
 
-;{ [Definitions]
+;{ Definitions
 ;{ --Enumerations--
 Enumeration 1 ; Exit codes
 #cBye
@@ -35,7 +35,7 @@ EndEnumeration
 ;}
 ;{ --Constants--
 #OpCodeSize = SizeOf(Word)
-#HeaderSig = ']SISATS['
+#HeaderSig = $5D5349534154535B ; [STASIS]
 ;}
 ;{ --Structures--
 Structure SystemCall
@@ -82,10 +82,10 @@ EndStructure
 Global System.VMData
 Global *ThisThread.ThreadData
 ;}
-;} {End/Definitions}
+;} EndDefinitions
 
-;{ =/=/=[Instruction table]=/=/=
-;{ <<Service macros>>
+;{ Instruction table
+; -Service macros-
 Macro DefCode(OpCode)
 System\JMPTable[#OpCode] = ?OpCode
 If #False : OpCode:
@@ -95,8 +95,8 @@ Macro EndCode()
 ! JMP __Ret ; Спасибо Фреду за наше счастливое детство.
 EndIf
 EndMacro
-;} <<end/macros>>
-;{ <<Service procedures, shared with minimal calls set>>
+
+; -Service procedures, shared with minimal calls set-
 Macro DefSharedProcs(TT, X) ; Definitions.
 Procedure Swap#X(A.X, B.X) ; Swaps top 2 values on stack.
 Push#X(TT\Stack, B) : Push#X(TT\Stack, A)
@@ -111,11 +111,9 @@ Procedure RRot#X(A.X, B.X, C.X) ; Rotate top 3 values on stack in reverse order.
 Push#X(TT\Stack, C) : Push#X(TT\Stack, A) : Push#X(TT\Stack, B)
 EndProcedure
 EndMacro
-;} <<end/procedures>>
 
-; -=OpCodes definitions=-
-;{ --Fully mutable instructions--
-; <<auxilary procs>>
+; -OpCodes definitions-
+;{ [Fully mutable instructions]
 Macro FM_Defs(TT, X) ; Definitions block.
 ; -Simple arithmetics-
 Procedure Search#X(Edge.i, Val.X) ; Search value in seqeunce.
@@ -125,8 +123,6 @@ If Pop#X(TT\Stack) = Val : SeekStack(TT\Stack, Edge) : ProcedureReturn #True : E
 Wend
 EndIf
 EndProcedure
-;}
-
 DefCode(iAdd#X) : Push#X(TT\Stack, Pop#X(TT\Stack) + Pop#X(TT\Stack)) : EndCode()
 DefCode(iSub#X) : Push#X(TT\Stack, -(Pop#X(TT\Stack) - Pop#X(TT\Stack))) : EndCode()
 DefCode(iMul#X) : Push#X(TT\Stack, Pop#X(TT\Stack) * Pop#X(TT\Stack)) : EndCode()
@@ -170,9 +166,8 @@ FM_Defs(*ThisThread, L)
 FM_Defs(*ThisThread, Q)
 FM_Defs(*ThisThread, I)
 FM_Defs(*ThisThread, F)
-FM_Defs(*ThisThread, D)
-;}
-;{ --Integer-mutable instructions--
+FM_Defs(*ThisThread, D) ;}
+;{ [Integer-mutable instructions]
 Macro IM_Defs(TT, X, TypeName) ; Definitions block.
 DefSharedProcs(TT, X)
 DefCode(iLit#X) : Push#X(TT\Stack, TT\IP\X) : TT\IP + SizeOf(TypeName) : EndCode()
@@ -215,9 +210,8 @@ IM_Defs(*ThisThread, W, Word)
 IM_Defs(*ThisThread, C, Character)
 IM_Defs(*ThisThread, L, Long)
 IM_Defs(*ThisThread, Q, Quad)
-IM_Defs(*ThisThread, I, Integer)
-;}
-;{ --Float-only instructions--
+IM_Defs(*ThisThread, I, Integer) ;}
+;{ [Float-only instructions]
 Macro FO_Defs(TT, X) ; Definitions block.
 ; -Complex arithmetics-
 DefCode(iLog#X)   : Push#X(TT\Stack, Log(Pop#X(TT\Stack))) : EndCode()
@@ -235,9 +229,8 @@ DefCode(iTan#X)  : Push#X(TT\Stack, Tan(Pop#X(TT\Stack) * #PI / 180)) : EndCode(
 EndMacro
 ; Definitions for each type.
 FO_Defs(*ThisThread, F)
-FO_Defs(*ThisThread, D) 
-;}
-;{ --Non-mutable instructions--
+FO_Defs(*ThisThread, D) ;}
+;{ [Non-mutable instructions]
 With *ThisThread
 Macro __CallCode(TT, Dest) ; Service macro for procs calling.
 PushI(TT\RStack, TT\IP) : PushI(TT\RStack, TT\DS) : TT\IP = Dest ; Dest
@@ -353,9 +346,11 @@ DefCode(iPopSC)  : PopSysCall(FormatSCName(PopS(\Stack))) : EndCode()
 DefCode(iFindSC) : LockMutex(System\SCMutex) : PushI(\Stack, System\SysCalls(FormatSCName(PopS(\Stack))))
 UnlockMutex(System\SCMutex) : EndCode()
 EndWith ;}
-;} 
-;{ =/=/=[SysCalls table]=/=/=
-;{ <<Service macros>>
+;} End table
+
+; ---------------------------------
+;{ SysCalls table
+; -Service macros-
 Macro Quotes
 "
 EndMacro
@@ -370,47 +365,37 @@ Macro EndCall()
 ! JMP __Ret ; Спасибо Фреду за наше счастливое детство.
 EndIf
 EndMacro
-;} <<end/service>>
 
-; -=Minimal set definitions=-
-;{ --Debugging IO--
-;{ <<auxilary procs>>
+; -Minimal set definitions-
+;{ [Debugging IO]
 Procedure.C WaitChar() ; Waits for input of character.
-Repeat : Delay(50) : Define Char.c = Asc(Inkey()) : Until Char <> 0 : ProcedureReturn Char
+Repeat : Delay(50)
+Define Char.c = Asc(Inkey())
+Until Char <> 0
+ProcedureReturn Char
 EndProcedure
-;} <<end/procs>>
 
-; ---=Definitions:
 With *ThisThread
-; [str] -> Minimal.Debug.TypeKey
 SysCall(Minimal_Debug_TypeString)  : \S = PopS(\Stack) : CharToOem_(@\S, @\S) : Print(\S) : EndCall()
-; Minimal.Debug.GetKey -> [char]
 SysCall(Minimal_Debug_GetKey)      : Inkey() : PushC(\Stack, RawKey()) : EndCall()
-; Minimal.Debug.StringInput -> [str]
 SysCall(Minimal_Debug_StringInput) : \S = Input() : OemToChar_(@\S, @\S) : PushS(\Stack, \S) : EndCall()
-; Minimal.Debug.WaitKey
 SysCall(Minimal_Debug_WaitKey)     : PushC(\Stack, WaitChar()): EndCall()
-EndWith
-;}
-;{ --String operations--
-;{ <<auxilarity>>
+EndWith ;}
+;{ [String operations]
 DefSharedProcs(*ThisThread, S)
 Macro __StartSeqScan(Lim) ; Partializer.
 If Lim >= 0
 Repeat : Define SDepth.i = __StackDepth(*ThisThread\Stack)
 If SDepth <= Lim : Break : EndIf
 EndMacro
-
 Macro __SeqScanBreaker(Lim) ; Partializer.
 If __StackDepth(*ThisThread\Stack) = SDepth
 SeekStack(*ThisThread\Stack, Lim) : Break
 EndIf
 EndMacro
-
 Macro __StopSeqScan() ; Partializer.
 ForEver : EndIf
 EndMacro
-
 Procedure SearchS(Edge.i, Val.s)
 With *ThisThread
 __StartSeqScan(Edge)
@@ -419,7 +404,6 @@ __SeqScanBreaker(Edge)
 __StopSeqScan()
 EndWith
 EndProcedure
-
 Procedure.s StringInsertion(Base.s, Fragment.s, IPos.i)
 If Base
 If Fragment : ProcedureReturn Left(Base, IPos) + Fragment + Mid(Base, IPos + 1)
@@ -428,103 +412,61 @@ EndIf
 Else : ProcedureReturn Fragment
 EndIf
 EndProcedure
-
 Procedure.s CutString(Txt.s, CutStart.i, CutSize.i)
 If Txt
 ProcedureReturn Left(Txt, CutStart - 1) + Mid(Txt, CutStart + CutSize)
 EndIf
 EndProcedure
-;} <<end/auxilarity>>
-
-; ---=Definitions:
 With *ThisThread
-;{ <Type conversion>
-; [int] -> Minimal.String.FromInteger -> [str]
+; -Type conversion-
 SysCall(Minimal_String_FromInteger) : PushS(\Stack, Str(PopI(\Stack)))   : EndCall()
-; [byte] -> Minimal.String.FromByte -> [str]
 SysCall(Minimal_String_FromByte)    : PushS(\Stack, Str(PopB(\Stack)))   : EndCall()
-; [word] -> Minimal.String.FromWord -> [str]
 SysCall(Minimal_String_FromWord)    : PushS(\Stack, Str(PopW(\Stack)))   : EndCall()
-; [long] -> Minimal.String.FromLong -> [str]
 SysCall(Minimal_String_FromLong)    : PushS(\Stack, Str(PopL(\Stack)))   : EndCall()
-; [quad] -> Minimal.String.FromQuad -> [str]
 SysCall(Minimal_String_FromQuad)    : PushS(\Stack, Str(PopQ(\Stack)))   : EndCall()
-; [float] -> Minimal.String.FromFloat -> [str]
 SysCall(Minimal_String_FromFloat)   : PushS(\Stack, RTrim(RTrim(StrF(PopF(\Stack)), "0"), ".")) : EndCall()
-; [dbl] -> Minimal.String.FromDouble -> [str]
 SysCall(Minimal_String_FromDouble)  : PushS(\Stack, RTrim(RTrim(StrD(PopD(\Stack)), "0"), ".")) : EndCall()
-; [char] -> Minimal.String.FromChar -> [str]
 SysCall(Minimal_String_FromChar)    : PushS(\Stack, Chr(PopC(\Stack)))   : EndCall()
-; [str] -> Minimal.String.ToInteger -> [int]
 SysCall(Minimal_String_ToInteger)   : PushI(\Stack, Val(PopS(\Stack)))   : EndCall()
-; [str] -> Minimal.String.ToByte -> [byte]
 SysCall(Minimal_String_ToByte)      : PushB(\Stack, Val(PopS(\Stack)))   : EndCall()
-; [str] -> Minimal.String.ToWord -> [word]
 SysCall(Minimal_String_ToWord)      : PushW(\Stack, Val(PopS(\Stack)))   : EndCall()
-; [str] -> Minimal.String.ToLong -> [long]
 SysCall(Minimal_String_ToLong)      : PushL(\Stack, Val(PopS(\Stack)))   : EndCall()
-; [str] -> Minimal.String.ToQuad -> [quad]
 SysCall(Minimal_String_ToQuad)      : PushQ(\Stack, Val(PopS(\Stack)))   : EndCall()
-; [str] -> Minimal.String.ToFloat -> [float]
 SysCall(Minimal_String_ToFloat)     : PushF(\Stack, ValF(PopS(\Stack)))  : EndCall() ; !!
-; [str] -> Minimal.String.ToDouble -> [double]
 SysCall(Minimal_String_ToDouble)    : PushD(\Stack, ValD(PopS(\Stack)))  : EndCall() ; !!
-; [str] -> Minimal.String.ToChar -> [dchar]
 SysCall(Minimal_String_ToChar)      : PushC(\Stack, Asc(Pops(\Stack)))   : EndCall()
-;}
-;{ <Basic operations>
-; [str] -> Minimal.String.ToUpper -> [str]
+; -Basic operations-
 SysCall(Minimal_String_ToUpper)     : PushS(\Stack, UCase(PopS(\Stack))) : EndCall()
-; [str] -> Minimal.String.ToLower -> [str]
 SysCall(Minimal_String_ToLower)     : PushS(\Stack, LCase(PopS(\Stack))) : EndCall()
-; [int] -> Minimal.String.Spaces -> [str]
 SysCall(Minimal_String_Spaces)      : PushS(\Stack, Space(PopI(\Stack))) : EndCall()
-; [str] -> Minimal.String.TrimLeft -> [str]
 SysCall(Minimal_String_TrimLeft)    : PushS(\Stack, LTrim(PopS(\Stack))) : EndCall()
-; [str] -> Minimal.String.TrimRight -> [str]
 SysCall(Minimal_String_TrimRight)   : PushS(\Stack, RTrim(PopS(\Stack))) : EndCall()
-; [str] -> Minimal.String.FullTrim -> [str]
 SysCall(Minimal_String_FullTrim)    : PushS(\Stack, Trim(PopS(\Stack)))  : EndCall()
-; [str] -> Minimal.String.GetLength -> [int]
 SysCall(Minimal_String_GetLength)   : PushI(\Stack, Len(PopS(\Stack)))   : EndCall()
-; [str, str] -> Minimal.String.CountString -> [int]
 SysCall(Minimal_String_CountString) : PushI(\Stack, CountString(PopS(\Stack), PopS(\Stack)))
 EndCall()
-; [str, int] -> Minimal.String.LeftPart -> [str]
 SysCall(Minimal_String_LeftPart)  : PushS(\Stack, Left(PopS(\Stack), PopI(\Stack))) : EndCall()
-; [str, int] -> Minimal.String.RightPart -> [str]
 SysCall(Minimal_String_RightPart) : PushS(\Stack, Right(PopS(\Stack), PopI(\Stack))) : EndCall()
-; [str, int, int] -> Minimal.String.MidPart -> [str]
 SysCall(Minimal_String_MidPart)   : PushS(\Stack, Mid(PopS(\Stack), PopI(\Stack), PopI(\Stack)))
 EndCall()
-; [str, ptr] -> Minimal.String.Write
 SysCall(Minimal_String_Write)      : \I = PopI(\Stack) : PokeS(\I, PopS(\Stack)) : EndCall()
 DisableDebugger
-; [ptr] -> Minimal.String.Read -> [str]
 SysCall(Minimal_String_Read)       : PushS(\Stack, PeekS(PopI(\Stack))) : EndCall()
 EnableDebugger
-; [str, str, str] -> Minimal.String.RemovePart -> [str]
 SysCall(Minimal_String_RemovePart) : PushS(\Stack, RemoveString(PopS(\Stack), PopS(\Stack)))
 EndCall()
-; [str, str, str] -> Minimal.String.ReplacePart -> [str]
 SysCall(Minimal_String_ReplacePart)
 PushS(\Stack, ReplaceString(PopS(\Stack), PopS(\Stack), PopS(\Stack))) : EndCall()
-; [Minimal.String.LeftSet
 SysCall(Minimal_String_LeftSet) : PushS(\Stack, LSet(PopS(\Stack), PopI(\Stack), Chr(PopC(\Stack))))
 EndCall()
-; Minimal.String.RightSet
 SysCall(Minimal_String_RightSet) : PushS(\Stack, RSet(PopS(\Stack), PopI(\Stack), Chr(PopC(\Stack))))
 EndCall()
-; Minimal.String.FindString
 SysCall(Minimal_String_FindString)
 PushI(\Stack, FindString(PopS(\Stack), PopS(\Stack), PopI(\Stack))) : EndCall()
-; Minimal.String.Concatenate
 SysCall(Minimal_String_Concatenate) : \S = PopS(\Stack) : PushS(\Stack, PopS(\Stack) + \S) : EndCall()
-; Minimal.String.Compare
 SysCall(Minimal_String_Compare)  : If PopS(\Stack) = PopS(\Stack) : PushI(\Stack, #True) : Else
 PushI(\Stack, #False) : EndIf : EndCall()
-;}
-;{ <Extended operations>
+; -Extended operations-
 SysCall(Minimal_String_Insert) : PushS(\Stack, StringInsertion(PopS(\Stack), PopS(\Stack), PopI(\Stack)))
 EndCall()
 SysCall(Minimal_String_Cut)    : PushS(\Stack, CutString(PopS(\Stack), PopI(\Stack), PopI(\Stack))) : EndCall()
@@ -542,10 +484,9 @@ EndCode()
 SysCall(Minimal_String_Split) : \I = PopI(\Stack) : \S = PopS(\Stack) : PushS(\Stack, Left(\S, \I))
 PushS(\Stack, Mid(\S, \I + 1)) : EndCall()
 EnableDebugger
-;}
 EndWith
 ;}
-;{ --Sequence operations--
+;{ [Sequence operations]
 Macro __CorrectSeqLen(SeqLenAcum) ; Service macro for all sequence operations.
 SeqLenAcum = __StackDepth(*ThisThread\Stack) - SeqLenAcum
 EndMacro
@@ -791,7 +732,7 @@ If PushData(\Stack, PopI(\Stack), PopI(\Stack)) : __Data2Seq(\I) : Else : __Data
 EndCall()
 EndWith
 ;}
-;{ --RunTime support--
+;{ [RunTime support]
 Macro FreeStrings(Start, Count, Clear = #False) ; Service macro for 'ResizeArray'
 Define *I.Integer, *ToFix = Start + Count * SizeOf(Integer) - SizeOf(Integer)
 For *I = Start To *ToFix : FreeMemory(*I\I)
@@ -981,7 +922,7 @@ SysCall(Minimal_RunTime_ClearArray)    : ClearArray(PopI(\Stack), PopI(\Stack)) 
 SysCall(Minimal_RunTime_StaticArrayGC) : StaticArrayGC(PopI(\Stack), PopI(\Stack)) : EndCall()
 EndWith
 ;}
-;{ --Miscellanious--
+;{ [Miscelanious]
 With *ThisThread
 SysCall(Minimal_Misc_RandomInt)      : PushI(\Stack, Random(PopI(\Stack))) : EndCall()
 SysCall(Minimal_Misc_Millisecs)      : PushI(\Stack, ElapsedMilliseconds()) : EndCall()
@@ -997,9 +938,11 @@ SysCall(Minimal_Misc_WordFillMemory) : FillMemory(PopI(\Stack), PopI(\Stack), Po
 SysCall(Minimal_Misc_LongFillMemory) : FillMemory(PopI(\Stack), PopI(\Stack), PopL(\Stack), #PB_Long):EndCall()
 EndWith
 ;}
-;} 
-;{ =/=/=[Procedures]=/=/=
-;{ --Math & Logic--
+;} End table
+; ---------------------------------
+
+;{ Procedures
+; -Math & Logic-
 Macro __CheckBit(Sequence, BitIndex) ; Pesudo-procedure.
 (Sequence & (1 << BitIndex)) >> BitIndex
 EndMacro
@@ -1025,8 +968,8 @@ Default : StrBuf + Chr(Char)
 EndSelect
 ForEver 
 EndProcedure
-;}
-;{ --VM core management--
+
+; -VM core management-
 ProcedureDLL InitVM()
 With System
 \GStack = AllocateStack()
@@ -1034,8 +977,8 @@ With System
 \SCMutex = CreateMutex()
 EndWith
 EndProcedure
-;}
-;{ --Threadz management--
+
+; -Threadz management-
 ProcedureDLL.s FormatExitReason(*Thread.ThreadData)
 With *Thread
 Select \ExitCode
@@ -1157,8 +1100,8 @@ __HeaderCheck__()
 ReadData(*FPtr, *HD\CodeStart, *HD\CodeSize)
 __DoExport__(*FPtr, ParseString, ReadInteger)
 __DoImport__(*FPtr, ParseString)
-CloseFile(*FPtr)
 __ExtractionFinale__()
+CloseFile(*FPtr)
 EndIf
 EndProcedure
 
@@ -1177,10 +1120,9 @@ ProcedureDLL FreeHeader(*HD.HeaderData)
 FreeMemory(*HD\CodeStart)
 FreeMemory(*HD)
 EndProcedure
-;}
-;} 
+;} EndProcedures
 
-;{ ==Temporary GUI==
+; ==Temporary GUI==
 InitVM()
 OpenConsole()
 ConsoleTitle("[StasisVM] debugging console:")
@@ -1193,12 +1135,8 @@ If *HD : ConsoleColor(10, 0) : PrintN("Executing '" + FName + "'..." + #CRLF$)
 Else : ConsoleColor(12, 0) : PrintN("ERROR: '" + FName + "' couldn't be loaded !") : Goto ReInput
 EndIf : ConsoleColor(7, 0)
 ThreadFromHeader(*HD)
-;} {End/GUI}
-; IDE Options = PureBasic 5.30 (Windows - x86)
-; CursorPosition = 511
-; FirstLine = 21
-; Folding = AAesLir-0
+; IDE Options = PureBasic 5.70 LTS (Windows - x86)
+; Folding = DgTn9--
 ; EnableXP
 ; Executable = ..\StasisVM.exe
-; DisableDebugger
 ; CurrentDirectory = ..\

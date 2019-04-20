@@ -1,4 +1,4 @@
-; *=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*
+; =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*
 ; StasisForth assembler v0.095 (Alpha)
 ; Developed in 2009 by Guevara-chan.
 ; *=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*
@@ -42,7 +42,7 @@ EnableExplicit
 IncludeFile "StasisBase.pb"
 IncludeFile "StackLib.pb"
 
-;{ [Definitions]
+;{ Definitions
 ;{ --Enumerations--
 Enumeration ; Construction types.
 #cBreak    ; Unconditional loop breaker.
@@ -512,10 +512,10 @@ EndStructure
 ;{ --Varibales--
 Global Compiler.CompilerData
 ;}
-;} {End/Definitions}
+;} EndDefinitions
 
-;{ =/=/=[Parsing tables]=/=/=
-;{ <<Service macros>>
+;{ Parsing tables
+; -Service macros-
 Macro Void : EndMacro ; Temporary bugfix for v4.50
 
 Macro Quotes
@@ -579,10 +579,9 @@ Macro WriteInteger(File, Number)
 If Compiler\IntSize = SizeOf(Long) : WriteLong(File, Number)
 Else : WriteQuad(File, Number) : EndIf
 EndMacro
-;} <<end/macros>>
 
-; -=OpCodes definitions=-
-;{ --Fully mutable instructions--
+; -OpCodes definitions-
+;{ [Fully mutable instructions]
  ; Definitions block.
 Macro FM_Defs(X, Y, Z) ; Definitions block.
 ; -Simple arithmetics-
@@ -627,7 +626,7 @@ Macro FullyMutableBlock()
 FM_Defs(B, 'b', %11) : FM_Defs(W, 'w', %11) : FM_Defs(C, 'c', %11) : FM_Defs(L, 'l', %11) : FM_Defs(Q, 'q', %11)
 FM_Defs(I, 'i', %11) : FM_Defs(I, '' , %11) : FM_Defs(F, 'f', %11) : FM_Defs(D, 'd', %11)
 EndMacro ;}
-;{ --Integer-mutable instructions--
+;{ [Integer-mutable instructions]
 Macro IM_Defs(X, Y, Z) ; Definitions block.
 DefPrim("%" , #iMod, X, Y, Z) ; Arithmetic.
 ; -Stack management-
@@ -661,7 +660,7 @@ Macro IntegerMutableBlock()
 IM_Defs(B, 'b', 1) : IM_Defs(W, 'w', 1) : IM_Defs(L, 'l', 1) : IM_Defs(Q, 'q', 1)
 IM_Defs(C, 'c', 1) : IM_Defs(I, 'i', 1) : IM_Defs(I, '' , 1)
 EndMacro ;}
-;{ --Float-only instructions--
+;{ [Float-only instructions]
 Macro FO_Defs(X, Y, Z) ; Definitions block.
 ; -Complex arithmetics-
 DefColonPrim("log"  , #iLog, X, Y, Z)
@@ -681,7 +680,7 @@ EndMacro
 Macro FloatOnlyBlock()
 FO_Defs(F, 'f', %10) : FO_Defs(D, 'd', %10) : FO_Defs(F, '', %10)
 EndMacro ;}
-;{ --Non-mutable instructions--
+;{ [Non-mutable instructions]
 Macro NonMutableBlock() ; Definitions block.
 DefPlainPrim("nop", #iNop)
 ; -Stack management-
@@ -731,9 +730,8 @@ DefPlainPrim("invptr", #iSysCallPtr)
 DefPlainPrim("sc@"   , #iPushSC)
 DefPlainPrim("sc!"   , #iPopSC)
 DefPlainPrim("?sc"   , #iFindSC)
-EndMacro
-;}
-;{ --Literals--
+EndMacro ;}
+;{ [Literals]
 Macro WriteLitData(TypeName, Value = 0) ; Writes data in compiler's output.
 CompilerIf Defined(WriteUnicode#TypeName, #PB_Function)        : WriteCharacter(Compiler\OutputFile, Value)
 Compiler\Offset + Compiler\CharSize ; Смещение.
@@ -791,68 +789,24 @@ Reflect("litiptr", #iLitIPtr)
 Reflect("absptr" , #iAbsPtr)
 Reflect("relptr" , #iRelPtr)
 Reflect("dataptr", #iDataPtr)
-EndMacro
-;}
-;{ **Finalizer**
+EndMacro ;}
+; ==Finalizer==
 FullyMutableBlock()
 IntegerMutableBlock()
 FloatOnlyBlock()
 NonMutableBlock()
 LiteralsBlock()
-;}
-;}
-;{ =/=/=[Parsing partializers]=/=/=
-;{ --Predefined constants--
-Macro DefPseudoConstant(Name)
-Case Name : PostPoneEx(#PConstPrefix + UCase(Name), 'LitI')
-EndMacro
+;} End table
 
-Macro PsuedoConstantsBlock() ; Definitions.
-DefPseudoConstant("#entrypoint")
-DefPseudoConstant("#codesize")
-DefPseudoConstant("#rdatasize")
-DefPseudoConstant("#vdatasize")
-DefPseudoConstant("#filesize")
-EndMacro
-;}
-;{ --Comments--
-Macro CommentsBlock() ; Partializer
-Case "//", "\" : SwallowLine() ; Rest-line comment.
-Case "("    : ChangeState(#sCommented1) ; Comments block (with brackets)
-Case "/*"   : ChangeState(#sCommented2) ; Comments block (with /*..*/)
-EndMacro
-;}
-;{ --Default literal type modifiers--
-Macro DefTypeMod(Name, TypeID, TypeName)
-Case Name : Compiler\DefDataType = TypeID 
-Inform("Default data type set to '" + TypeName + "'")
-EndMacro
-
-Macro DefTypeModsBlock() ; Definitions
-DefTypeMod("<deftype:b>", 'b', "byte")
-DefTypeMod("<deftype:c>", 'c', "char")
-DefTypeMod("<deftype:w>", 'w', "word")
-DefTypeMod("<deftype:l>", 'l', "long")
-DefTypeMod("<deftype:q>", 'q', "quad")
-DefTypeMod("<deftype:f>", 'f', "float")
-DefTypeMod("<deftype:d>", 'd', "double")
-DefTypeMod("<deftype:i>", 'i', "integer")
-DefTypeMod("<deftype:abs>", ':Abs', "absolute code pointer")
-DefTypeMod("<deftype:rel>", ':Rel', "relative pointer")
-DefTypeMod("<deftype:dat>", ':Dat', "dataspace pointer")
-DefTypeMod("<deftype:str>", ':Str', "string pointer")
-DefTypeMod("<deftype:int>", ':Int', "integer pointer")
-EndMacro
-;}
-;}
-;{ =/=/=[Procedures]=/=/=
-;{ **Declarations**
+;{ Declarations
 Declare.s RecallStr()
 Declare.i RecallInt()
 Declare EmitSysCall(CallName.s)
 Declare LiteralS(Text.S, Optimize = #True)
 Declare UniPusher(TypeIdent, QValue.q, DValue.d = 0, SValue.s = "")
-;}
+;} EndDeclarations
+
+;{ Procedures
 ;{ --Math&Logic--
 Macro LCut(Text, Chars = 1) ; Pesudo-procedure.
 Mid(Text, 1 + Chars)
@@ -938,6 +892,16 @@ If A > B : ProcedureReturn A
 Else     : ProcedureReturn B
 EndIf
 EndProcedure
+
+CompilerIf #PB_Compiler_Version => 560 ; Не было печали - апдейтов накачали !
+Macro Base64Decoder(InputBuffer, InputSize, OutputBuffer, OutputSize) 
+Base64DecoderBuffer(InputBuffer, InputSize, OutputBuffer, OutputSize)
+EndMacro
+
+Macro Base64Encoder(InputBuffer, InputSize, OutputBuffer, OutputSize) 
+Base64EncoderBuffer(InputBuffer, InputSize, OutputBuffer, OutputSize)
+EndMacro
+CompilerEndIf
 ;}
 ;{ --GUI management--
 Macro FinishWork() ; Pseudo-procedure.
@@ -1189,8 +1153,8 @@ EndProcedure
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Macro SetupCompiler() ; Pseudo-procedure.
-Compiler\CharSize    = SizeOf(Ascii)
-Compiler\CharOutcome = #PB_Ascii
+Compiler\CharSize    = SizeOf(Character)
+CompilerIf #PB_Unicode : Compiler\CharOutcome = #PB_Unicode : CompilerElse : Compiler\CharOutcome = #PB_Ascii : CompilerEndIf
 ; ---
 Compiler\IntSize     = SizeOf(Long)
 Compiler\JumpSize    = #OpCodeSize * 2 + Compiler\IntSize
@@ -4542,9 +4506,9 @@ Macro InterpetationMode(NewState = #False) ; Pseudo-procedure.
 SetModeCounter(NewState, Compiler\Interpreting, Compiler\InterLoc, #eInterOut)
 EndMacro
 ;}
-;}
+;} EndProcedures
 
-;{ [Main macros]
+;{ Main macros
 Macro InitCompiler() ; Pseudo-procedure.
 OpenConsole()
 TypeOut("StasisForth assembler v0.095 (developed in 2009 by Guevara-chan)", 10)
@@ -4630,9 +4594,53 @@ If Compiler\Warnings : WarningsInfo() : EndIf ; Информация о предупреждениях.
 TypeOut("'" + GetFilePart(Compiler\OutputName) + "' successfuly created, work complete !", 10)
 FinishWork()
 EndMacro
-;} {End/Macros}
+;} EndMacros
 
-;{ ==Main code==
+;{ Parsing partializers
+; --Predefined constants--
+Macro DefPseudoConstant(Name)
+Case Name : PostPoneEx(#PConstPrefix + UCase(Name), 'LitI')
+EndMacro
+
+Macro PsuedoConstantsBlock() ; Definitions.
+DefPseudoConstant("#entrypoint")
+DefPseudoConstant("#codesize")
+DefPseudoConstant("#rdatasize")
+DefPseudoConstant("#vdatasize")
+DefPseudoConstant("#filesize")
+EndMacro
+
+; --Comments--
+Macro CommentsBlock() ; Partializer
+Case "//", "\" : SwallowLine() ; Rest-line comment.
+Case "("    : ChangeState(#sCommented1) ; Comments block (with brackets)
+Case "/*"   : ChangeState(#sCommented2) ; Comments block (with /*..*/)
+EndMacro
+
+; --Default literal type modifiers--
+Macro DefTypeMod(Name, TypeID, TypeName)
+Case Name : Compiler\DefDataType = TypeID 
+Inform("Default data type set to '" + TypeName + "'")
+EndMacro
+
+Macro DefTypeModsBlock() ; Definitions
+DefTypeMod("<deftype:b>", 'b', "byte")
+DefTypeMod("<deftype:c>", 'c', "char")
+DefTypeMod("<deftype:w>", 'w', "word")
+DefTypeMod("<deftype:l>", 'l', "long")
+DefTypeMod("<deftype:q>", 'q', "quad")
+DefTypeMod("<deftype:f>", 'f', "float")
+DefTypeMod("<deftype:d>", 'd', "double")
+DefTypeMod("<deftype:i>", 'i', "integer")
+DefTypeMod("<deftype:abs>", ':Abs', "absolute code pointer")
+DefTypeMod("<deftype:rel>", ':Rel', "relative pointer")
+DefTypeMod("<deftype:dat>", ':Dat', "dataspace pointer")
+DefTypeMod("<deftype:str>", ':Str', "string pointer")
+DefTypeMod("<deftype:int>", ':Int', "integer pointer")
+EndMacro
+;} EndPartializers
+
+; ==Main code==
 InitCompiler()
 Repeat ; Ассемблирование всех исходных текстов...
 While ParseNextWord()
@@ -4664,7 +4672,7 @@ Case #sValueGroup     : ParseGroup(Compiler\ThisWord)
 Default ; Normal modes.
 If Compiler\Interpreting = #False ; Compilation mode.
 If TryPriming(Compiler\ThisWord) = #False
-;{ -<Встроенные слова компиляции>-
+;{ -Встроенные слова компиляции-
 Select Compiler\ThisWord
 ; -Infinite loops-
 Case "begin" : AddBegin()
@@ -4863,7 +4871,7 @@ Case "?"         : ChangeState(#sPtrRequest)
 Case "label:"    : ChangeState(#sLabelName)
 Default : ToBeFixed(Compiler\ThisWord, -1, #eUndefined, #PostPonedCall) : CompileJump(0)
 EndSelect
-;} {End/словарная таблица}
+;}
 EndIf
 Else : Interpret(Compiler\ThisWord) ; Интерпретируем слово
 EndIf
@@ -4872,11 +4880,10 @@ If Compiler\Reparse : Compiler\Reparse = #False : Goto Reparse : EndIf
 Wend : If ListSize(Compiler\Sources()) = 1 Or #True : CheckUnfinished() : EndIf
 Until RollSourceBack() = #Null
 AfterMath()
-;} {End/Main}
-; IDE Options = PureBasic 5.30 (Windows - x86)
+; IDE Options = PureBasic 5.70 LTS (Windows - x86)
 ; ExecutableFormat = Console
-; Folding = iCE64f+-----8---f-u-P+
-; EnableUnicode
+; Folding = Cx74f+-----8---f-u-P-
 ; EnableXP
 ; Executable = ..\StasisForth.exe
 ; CurrentDirectory = ..\
+; EnableUnicode
