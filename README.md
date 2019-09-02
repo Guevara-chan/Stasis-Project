@@ -17,7 +17,7 @@ It was designed embeddable and easily extensible, though not really meant for sc
 * Extensive namespace support.
 
 # /Reassembling/:
-__Stasis__ was deveoped as OS-independent  [PureBasic v4.40](http://purebasic.com) project, though compatible with *5.7x (LTS)*.  
+__Stasis__ was developed as OS-independent  [PureBasic v4.40](http://purebasic.com) project, though compatible with *5.7x (LTS)*.  
 Compile `StasisVM.pb` or `StasisForth.pb` to assemble snapshot intepreter and compiler respectively.
 
 # /Brief samples of interfacing/:
